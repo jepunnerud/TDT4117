@@ -55,14 +55,9 @@ def partition_into_paragraphs(file_path):
 
 paragraphs = partition_into_paragraphs("pg3300.txt")
 text = paragraphs
-# print(text[:10])
 
 text = list(filter(lambda x: not "Gutenberg" in x, text)) # Remove Gutenberg header
 text = [x.strip().split(" ") for x in text] # Split into words
-# text = [x for x in text if x != ['']] # Remove empty lines
-# text = make_paragraphs(text) # Split into paragraphs
-
-print(text[:10])
 
 def remove_punctuation(word):
     translator = str.maketrans('', '', string.punctuation)
@@ -75,20 +70,19 @@ stemmer = PorterStemmer()
 for i, sentence in enumerate(text):
     text[i] = [stemmer.stem(word.lower()) for word in sentence] # Stem words
 
-# print(text[:10])
-
 dictionary = gensim.corpora.Dictionary(text)
 
 stop_ids = [dictionary.token2id[stopword] for stopword in stopwords if stopword in dictionary.token2id]
 dictionary.filter_tokens(stop_ids)
+
 for sentence in text:
     dictionary.doc2bow(sentence, allow_update=True)
 
-# print(dictionary)
+print(dictionary)
 
 tfidf_model = gensim.models.TfidfModel(dictionary=dictionary)
 
-tfidf_corpus = tfidf_model[dictionary]
+tfidf_corpus = [tfidf_model[doc] for doc in text]
 
 matrix_similarity_object = gensim.similarities.MatrixSimilarity([tfidf_corpus], num_features=len(dictionary))
 
@@ -96,6 +90,6 @@ lsi_model = gensim.models.LsiModel(tfidf_corpus, id2word=dictionary, num_topics=
 
 lsi_corpus = lsi_model[tfidf_corpus]
 
-lsi_model.show_topic()
+lsi_model.show_topic(0)
 
 f.close
